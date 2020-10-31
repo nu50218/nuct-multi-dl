@@ -10,10 +10,11 @@ import (
 )
 
 type Config struct {
-	BaseUri string `json:"base_uri"`
-	User    string `json:"user"`
-	Pass    string `json:"pass"`
-	Sites   []*struct {
+	BaseUri    string  `json:"base_uri"`
+	User       string  `json:"user"`
+	Pass       string  `json:"pass"`
+	LastUpdate *string `json:"last_update"`
+	Sites      []*struct {
 		ID  string `json:"id"`
 		Out string `json:"out"`
 	} `json:"sites"`
@@ -41,8 +42,14 @@ func main() {
 	}
 
 	for _, site := range config.Sites {
-		fmt.Println("$", "nuct-dl", "-id="+site.ID, "-out="+site.Out)
-		cmd := exec.Command("nuct-dl", "-uri="+config.BaseUri, "-id="+site.ID, "-user="+config.User, "-pass="+config.Pass, "-out="+site.Out)
+		args := []string{"-user=" + config.User, "-pass=" + config.Pass, "-uri=" + config.BaseUri, "-id=" + site.ID, "-out=" + site.Out}
+		if config.LastUpdate != nil {
+			args = append(args, "-last_update="+*config.LastUpdate)
+		}
+
+		fmt.Println("$", "nuct-dl", args[2:])
+
+		cmd := exec.Command("nuct-dl", args...)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
